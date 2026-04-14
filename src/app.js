@@ -7,24 +7,38 @@ import { errorHandler } from "./middlewares/errorHandler.js";
 
 const app = express();
 
-app.use(cors({ origin: env.clientUrl, credentials: true }));
+// ✅ CORS
+app.use(cors({
+  origin: env.clientUrl || "*", // production me frontend URL daalna
+  credentials: true,
+}));
+
+// ✅ Body parser
 app.use(express.json());
 
-// Health check
+// ✅ Health check (optional but useful)
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// API routes
+// ✅ API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/rooms", roomRoutes);
 
-// 404 handler
-app.use((_req, res) => {
-  res.status(404).json({ success: false, message: "Route not found" });
+// ✅ ROOT ROUTE (IMPORTANT FIX)
+app.get("/", (req, res) => {
+  res.send("Backend is running 🚀");
 });
 
-// Global error handler (must be last)
+// ❌ 404 handler (always after all routes)
+app.use((_req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
+  });
+});
+
+// ❌ Global error handler (LAST)
 app.use(errorHandler);
 
 export default app;
