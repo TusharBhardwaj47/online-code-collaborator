@@ -9,8 +9,8 @@ const app = express();
 
 // ✅ CORS
 app.use(cors({
-  origin: env.clientUrl || "*", // production me frontend URL daalna
-  credentials: true,
+  origin: "https://online-code-collaborator-3.onrender.com",
+  credentials: true
 }));
 
 // ✅ Body parser
