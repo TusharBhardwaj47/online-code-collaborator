@@ -4,6 +4,9 @@ import app from "./app.js";
 import { env } from "./config/index.js";
 import { connectDB } from "./config/db.js";
 import { registerSocketHandlers } from "./socket/index.js";
+app.get("/", (req, res) => {
+  res.send("Backend is running 🚀");
+});
 
 async function bootstrap() {
   await connectDB();
