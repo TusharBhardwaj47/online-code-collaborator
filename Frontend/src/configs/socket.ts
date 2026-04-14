@@ -7,7 +7,7 @@ const socket = io("https://online-code-collaborator-2.onrender.com", {
 
   auth: {
     token: localStorage.getItem("token"),
-    name: "Tushar"
+    name; "Tushar"
   }
 });
 
