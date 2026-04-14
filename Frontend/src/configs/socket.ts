@@ -1,9 +1,9 @@
 import { io } from "socket.io-client";
 
-const socket = io("https://online-code-collaborator.onrender.com", {
+const socket = io("https://online-code-collaborator-2.onrender.com", {
   autoConnect: false,
-  reconnection: true,
   transports: ["websocket"],
+})
 
   auth: {
     token: localStorage.getItem("token"),
