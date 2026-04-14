@@ -2,11 +2,9 @@ import jwt from "jsonwebtoken";
 import { env } from "../config/index.js";
 import { updateRoomCode } from "../services/room.service.js";
 
-// Map to track active users per room: roomId -> Set of { socketId, userId, name }
 const activeRooms = new Map();
 
 export function registerSocketHandlers(io) {
-  // Authenticate socket connections with JWT
   io.use((socket, next) => {
     const token = socket.handshake.auth?.token;
     if (!token) return next(new Error("Authentication required"));
@@ -24,36 +22,41 @@ export function registerSocketHandlers(io) {
   io.on("connection", (socket) => {
     console.log(`Socket connected: ${socket.id} (user: ${socket.userId})`);
 
-    // ─── Join a room ────────────────────────────────────────────────
+    // Join room
     socket.on("room:join", ({ roomId }) => {
       socket.join(roomId);
 
       if (!activeRooms.has(roomId)) activeRooms.set(roomId, new Set());
 
-      activeRooms.get(roomId).add({
+      const users = activeRooms.get(roomId);
+
+      // remove duplicate user
+      users.forEach((u) => {
+        if (u.userId === socket.userId) users.delete(u);
+      });
+
+      users.add({
         socketId: socket.id,
         userId: socket.userId,
         name: socket.userName,
       });
 
-      // Tell everyone in the room who is online
       io.to(roomId).emit("room:users", getActiveUsers(roomId));
 
-      // Notify others that someone joined
       socket.to(roomId).emit("room:user-joined", {
         userId: socket.userId,
         name: socket.userName,
       });
-
-      console.log(`User ${socket.userName} joined room ${roomId}`);
     });
 
-    // ─── Code change (real-time broadcast) ──────────────────────────
+    // Code change
     socket.on("code:change", async ({ roomId, code, language }) => {
-      // Broadcast the change to every OTHER user in the room instantly
-      socket.to(roomId).emit("code:update", { code, language, from: socket.userId });
+      socket.to(roomId).emit("code:update", {
+        code,
+        language,
+        from: socket.userId,
+      });
 
-      // Persist the latest code to MongoDB (debounce handled on client side)
       try {
         await updateRoomCode({ roomId, code, language });
       } catch (err) {
@@ -61,7 +64,7 @@ export function registerSocketHandlers(io) {
       }
     });
 
-    // ─── Cursor position (for presence awareness) ───────────────────
+    // Cursor move
     socket.on("cursor:move", ({ roomId, cursor }) => {
       socket.to(roomId).emit("cursor:update", {
         userId: socket.userId,
@@ -70,12 +73,15 @@ export function registerSocketHandlers(io) {
       });
     });
 
-    // ─── Language change ─────────────────────────────────────────────
+    // Language change
     socket.on("language:change", ({ roomId, language }) => {
-      socket.to(roomId).emit("language:update", { language, from: socket.userName });
+      socket.to(roomId).emit("language:update", {
+        language,
+        from: socket.userName,
+      });
     });
 
-    // ─── Chat message inside a room ──────────────────────────────────
+    // Chat
     socket.on("chat:message", ({ roomId, message }) => {
       io.to(roomId).emit("chat:message", {
         userId: socket.userId,
@@ -85,12 +91,12 @@ export function registerSocketHandlers(io) {
       });
     });
 
-    // ─── Leave a room explicitly ─────────────────────────────────────
+    // Leave room
     socket.on("room:leave", ({ roomId }) => {
       handleLeave(socket, io, roomId);
     });
 
-    // ─── On disconnect (tab closed / network drop) ───────────────────
+    // Disconnect
     socket.on("disconnect", () => {
       console.log(`Socket disconnected: ${socket.id}`);
       for (const roomId of socket.rooms) {
@@ -100,8 +106,7 @@ export function registerSocketHandlers(io) {
   });
 }
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
+// Helpers
 function handleLeave(socket, io, roomId) {
   socket.leave(roomId);
 
@@ -114,6 +119,7 @@ function handleLeave(socket, io, roomId) {
   }
 
   io.to(roomId).emit("room:users", getActiveUsers(roomId));
+
   socket.to(roomId).emit("room:user-left", {
     userId: socket.userId,
     name: socket.userName,
