@@ -31,11 +31,9 @@ useEffect(() => {
     name: localStorage.getItem("userName"),
   };
 
-  if (socket.connected) {
-    socket.disconnect();
-  }
-
+  if (!socket.connected) {
   socket.connect();
+}
   socket.emit("room:join", { roomId });
 
   api.get(`/rooms/${roomId}`).then((res) => {
@@ -45,9 +43,13 @@ useEffect(() => {
     setLanguage(room.language || "javascript");
   });
 
-  socket.on("code:update", ({ code: incoming }: { code: string }) => {
+ socket.on("code:update", ({ code: incoming, userId }) => {
+  const myId = socket.id;
+
+  if (userId !== myId) {
     setCode(incoming);
-  });
+  }
+});
 
   socket.on("room:users", (users: any[]) => {
     setActiveUsers(users);

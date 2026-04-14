@@ -51,11 +51,11 @@ export function registerSocketHandlers(io) {
 
     // Code change
     socket.on("code:change", async ({ roomId, code, language }) => {
-      socket.to(roomId).emit("code:update", {
-        code,
-        language,
-        from: socket.userId,
-      });
+   socket.to(roomId).emit("code:update", {
+  code,
+  language,
+  userId: socket.id
+});
 
       try {
         await updateRoomCode({ roomId, code, language });
