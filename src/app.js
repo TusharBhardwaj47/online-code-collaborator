@@ -15,14 +15,7 @@ const allowedOrigins = [
 
 // ✅ CORS FIX (IMPORTANT)
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("CORS blocked"));
-    }
-  },
-  credentials: true,
+  origin: "*"
 }));
 
 app.use(express.json());
