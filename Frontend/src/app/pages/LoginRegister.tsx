@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Zap, Github } from "lucide-react";
+// import { Zap, Github } from "lucide-react";
+import { Zap } from "lucide-react";
 import { motion } from "motion/react";
 import api from "../../configs/api";
 
@@ -179,22 +180,22 @@ const handleSubmit = async (e: React.FormEvent) => {
               {isLogin ? "Sign In" : "Create Account"}
             </button>
 
-            <div className="relative my-6">
+            {/* <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-[#E4E7EF]"></div>
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-4 bg-white text-[#6B7280]">or</span>
               </div>
-            </div>
+            </div> */}
 
-            <button
+            {/* <button
               type="button"
               className="w-full py-3 bg-white border border-[#E4E7EF] text-[#0F1117] rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-[#F8F9FC] transition-all"
             >
               <Github className="w-5 h-5" />
               Continue with GitHub
-            </button>
+            </button> */}
           </form>
 
           {/* Footer */}
