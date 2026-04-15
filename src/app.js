@@ -12,7 +12,10 @@ const app = express();
 
 
 app.use(cors({
-  origin: true,   // 🔥 IMPORTANT (auto allow)
+  origin: [
+    "http://localhost:5173",
+    "https://online-code-collaborator-3.onrender.com"
+  ],
   credentials: true,
 }));
 
