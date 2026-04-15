@@ -7,17 +7,21 @@ import { errorHandler } from "./middlewares/errorHandler.js";
 
 const app = express();
 
-// ✅ ALLOWED ORIGINS
 const allowedOrigins = [
   "http://localhost:5173",
   "https://online-code-collaborator-3.onrender.com"
 ];
 
-// ✅ CORS FIX (IMPORTANT)
 app.use(cors({
-  origin: "*"
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS not allowed"));
+    }
+  },
+  credentials: true,
 }));
-
 app.use(express.json());
 
 // ✅ Health
