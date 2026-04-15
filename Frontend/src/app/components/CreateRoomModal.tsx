@@ -5,12 +5,12 @@ import api from "../../configs/api";
 import { motion } from "motion/react";
 
 const languages = [
-  { id: "javascript", name: "JavaScript", color: "#F7DF1E" },
-  { id: "python", name: "Python", color: "#3776AB" },
-  { id: "java", name: "Java", color: "#F89820" },
-  { id: "cpp", name: "C++", color: "#00599C" },
-  { id: "typescript", name: "TypeScript", color: "#3178C6" },
-  { id: "go", name: "Go", color: "#00ADD8" },
+  { id: "javascript", name: "JavaScript", color: "#F7DF1E", disabled: false },
+  { id: "python", name: "Python", color: "#3776AB", disabled: false },
+  { id: "java", name: "Java", color: "#F89820", disabled: true },
+  { id: "cpp", name: "C++", color: "#00599C", disabled: true },
+  { id: "typescript", name: "TypeScript", color: "#3178C6", disabled: true },
+  { id: "go", name: "Go", color: "#00ADD8", disabled: true },
 ];
 
 interface CreateRoomModalProps {
@@ -21,20 +21,20 @@ export function CreateRoomModal({ onClose }: CreateRoomModalProps) {
   const [roomName, setRoomName] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("javascript");
   const navigate = useNavigate();
-  
-const handleCreate = async (e: React.FormEvent) => {
-  e.preventDefault();
-  try {
-    const res = await api.post("/rooms", {
-      name: roomName,
-      language: selectedLanguage,
-    });
-    const { roomId } = res.data.data.room;
-    navigate(`/app/editor/${roomId}`);
-  } catch (err: any) {
-    alert(err.response?.data?.message || "Failed to create room");
-  }
-};
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await api.post("/rooms", {
+        name: roomName,
+        language: selectedLanguage,
+      });
+      const { roomId } = res.data.data.room;
+      navigate(`/app/editor/${roomId}`);
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to create room");
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -96,9 +96,12 @@ const handleCreate = async (e: React.FormEvent) => {
                 <button
                   key={lang.id}
                   type="button"
-                  onClick={() => setSelectedLanguage(lang.id)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg border-2 transition-all ${
-                    selectedLanguage === lang.id
+                  disabled={lang.disabled}
+                  onClick={() => !lang.disabled && setSelectedLanguage(lang.id)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg border-2 transition-all relative ${
+                    lang.disabled
+                      ? "border-[#E4E7EF] opacity-40 cursor-not-allowed bg-[#F8F9FC]"
+                      : selectedLanguage === lang.id
                       ? "border-[#6C63FF] bg-[#EEF0FF]"
                       : "border-[#E4E7EF] hover:border-[#6C63FF]/30"
                   }`}
@@ -110,6 +113,11 @@ const handleCreate = async (e: React.FormEvent) => {
                   <span className="text-sm font-medium text-[#0F1117]">
                     {lang.name}
                   </span>
+                  {lang.disabled && (
+                    <span className="absolute top-1 right-2 text-[10px] text-[#6B7280]">
+                      Soon
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
