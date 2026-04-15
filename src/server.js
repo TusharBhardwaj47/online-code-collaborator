@@ -23,9 +23,14 @@ async function bootstrap() {
 
   registerSocketHandlers(io);
 
-  httpServer.listen(env.port, () => {
-    console.log(`Server running on http://localhost:${env.port}`);
-  });
+  // httpServer.listen(env.port, () => {
+  //   console.log(`Server running on http://localhost:${env.port}`);
+  // });
+  const PORT = process.env.PORT || env.port || 5000;
+
+httpServer.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
 }
 
 bootstrap().catch((err) => {

@@ -11,5 +11,6 @@ export const env = {
   mongoUri: required("MONGO_URI"),
   jwtSecret: required("JWT_SECRET"),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
-  clientUrl: process.env.CLIENT_URL || "http://localhost:5173",
+clientUrl: process.env.CLIENT_URL || "https://online-code-collaborator-3.onrender.com",
+  // clientUrl: process.env.CLIENT_URL || "http://localhost:5173",
 };
