@@ -4,47 +4,49 @@ import { env } from "./config/index.js";
 import authRoutes from "./routes/auth.routes.js";
 import roomRoutes from "./routes/room.routes.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
-import cors from "cors";
 
 const app = express();
 
-// ✅ CORS
+// ✅ ALLOWED ORIGINS
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://online-code-collaborator-3.onrender.com"
+];
 
-
+// ✅ CORS FIX (IMPORTANT)
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://online-code-collaborator-3.onrender.com"
-  ],
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS blocked"));
+    }
+  },
   credentials: true,
 }));
 
-// ✅ Body parser
 app.use(express.json());
 
-// ✅ Health check (optional but useful)
+// ✅ Health
 app.get("/health", (_req, res) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString() });
+  res.json({ status: "ok" });
 });
 
-// ✅ API routes
+// ✅ Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/rooms", roomRoutes);
 
-// ✅ ROOT ROUTE (IMPORTANT FIX)
+// ✅ Root
 app.get("/", (req, res) => {
   res.send("Backend is running 🚀");
 });
 
-// ❌ 404 handler (always after all routes)
+// ❌ 404
 app.use((_req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "Route not found",
-  });
+  res.status(404).json({ success: false, message: "Route not found" });
 });
 
-// ❌ Global error handler (LAST)
+// ❌ Error
 app.use(errorHandler);
 
 export default app;
