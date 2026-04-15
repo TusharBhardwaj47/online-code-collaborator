@@ -4,15 +4,15 @@ import { env } from "./config/index.js";
 import authRoutes from "./routes/auth.routes.js";
 import roomRoutes from "./routes/room.routes.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
+import cors from "cors";
 
 const app = express();
 
 // ✅ CORS
+
+
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://online-code-collaborator-3.onrender.com"
-  ],
+  origin: true,   // 🔥 IMPORTANT (auto allow)
   credentials: true,
 }));
 
