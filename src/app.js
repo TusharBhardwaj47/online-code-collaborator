@@ -9,12 +9,10 @@ const app = express();
 
 // ✅ CORS
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://online-code-collaborator-3.onrender.com"
-  ],
-  credentials: true,
+  origin: "*"
 }));
+//   credentials: true,
+// }));
 
 // ✅ Body parser
 app.use(express.json());
