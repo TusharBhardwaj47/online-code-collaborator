@@ -10,28 +10,65 @@ export function LoginRegister() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const navigate = useNavigate();
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  try {
-    const endpoint = isLogin ? "/auth/login" : "/auth/register";
-    const payload = isLogin
-      ? { email, password }
-      : { name, email, password };
+  const validateEmail = (email: string): string | null => {
+    if (!email) return "Email is required.";
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) return "Enter a valid email address.";
+    const domain = email.split("@")[1]?.toLowerCase();
+    const isAllowed = domain === "gmail.com" || domain.endsWith(".ac.in");
+    if (!isAllowed) return "Only gmail.com or .ac.in emails are allowed.";
+    return null;
+  };
 
-    const res = await api.post(endpoint, payload);
-    const { token, user } = res.data.data;
+  const validatePassword = (password: string): string | null => {
+    if (!password) return "Password is required.";
+    if (password.length < 8) return "Password must be at least 8 characters.";
+    if (password.length > 18) return "Password must not exceed 18 characters.";
+    if (!/[A-Z]/.test(password)) return "Must include at least one uppercase letter.";
+    if (!/[a-z]/.test(password)) return "Must include at least one lowercase letter.";
+    if (!/[0-9]/.test(password)) return "Must include at least one number.";
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password))
+      return "Must include at least one special character.";
+    return null;
+  };
 
-    localStorage.setItem("token", token);
-    localStorage.setItem("userName", user.name);
-    localStorage.setItem("userId", user.id);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-    navigate("/app");
-  } catch (err: any) {
-    alert(err.response?.data?.message || "Something went wrong");
-  }
-};
+    const emailError = validateEmail(email);
+    const passwordError = validatePassword(password);
+
+    if (emailError || passwordError) {
+      setErrors({
+        email: emailError ?? undefined,
+        password: passwordError ?? undefined,
+      });
+      return;
+    }
+
+    setErrors({});
+
+    try {
+      const endpoint = isLogin ? "/auth/login" : "/auth/register";
+      const payload = isLogin
+        ? { email, password }
+        : { name, email, password };
+
+      const res = await api.post(endpoint, payload);
+      const { token, user } = res.data.data;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("userName", user.name);
+      localStorage.setItem("userId", user.id);
+
+      navigate("/app");
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Something went wrong");
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
@@ -95,7 +132,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           {/* Tabs */}
           <div className="flex gap-1 bg-[#F8F9FC] p-1 rounded-lg mb-8">
             <button
-              onClick={() => setIsLogin(true)}
+              onClick={() => { setIsLogin(true); setErrors({}); }}
               className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
                 isLogin
                   ? "bg-white text-[#0F1117] shadow-sm"
@@ -105,7 +142,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               Login
             </button>
             <button
-              onClick={() => setIsLogin(false)}
+              onClick={() => { setIsLogin(false); setErrors({}); }}
               className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
                 !isLogin
                   ? "bg-white text-[#0F1117] shadow-sm"
@@ -134,6 +171,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               </div>
             )}
 
+            {/* Email */}
             <div>
               <label className="block text-sm font-medium text-[#0F1117] mb-2">
                 Email Address
@@ -141,13 +179,24 @@ const handleSubmit = async (e: React.FormEvent) => {
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2.5 bg-white border border-[#E4E7EF] rounded-lg text-[#0F1117] placeholder:text-[#6B7280] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all"
-                placeholder="Enter your email"
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setErrors(prev => ({ ...prev, email: undefined }));
+                }}
+                className={`w-full px-4 py-2.5 bg-white border rounded-lg text-[#0F1117] placeholder:text-[#6B7280] focus:outline-none focus:ring-2 transition-all ${
+                  errors.email
+                    ? "border-red-400 focus:border-red-400 focus:ring-red-400/20"
+                    : "border-[#E4E7EF] focus:border-[#6C63FF] focus:ring-[#6C63FF]/20"
+                }`}
+                placeholder="you@gmail.com or you@college.ac.in"
                 required
               />
+              {errors.email && (
+                <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+              )}
             </div>
 
+            {/* Password */}
             <div>
               <label className="block text-sm font-medium text-[#0F1117] mb-2">
                 Password
@@ -155,11 +204,21 @@ const handleSubmit = async (e: React.FormEvent) => {
               <input
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2.5 bg-white border border-[#E4E7EF] rounded-lg text-[#0F1117] placeholder:text-[#6B7280] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all"
-                placeholder="Enter your password"
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setErrors(prev => ({ ...prev, password: undefined }));
+                }}
+                className={`w-full px-4 py-2.5 bg-white border rounded-lg text-[#0F1117] placeholder:text-[#6B7280] focus:outline-none focus:ring-2 transition-all ${
+                  errors.password
+                    ? "border-red-400 focus:border-red-400 focus:ring-red-400/20"
+                    : "border-[#E4E7EF] focus:border-[#6C63FF] focus:ring-[#6C63FF]/20"
+                }`}
+                placeholder="8–18 chars, upper, lower, number, special"
                 required
               />
+              {errors.password && (
+                <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+              )}
             </div>
 
             {isLogin && (
@@ -179,23 +238,6 @@ const handleSubmit = async (e: React.FormEvent) => {
             >
               {isLogin ? "Sign In" : "Create Account"}
             </button>
-
-            {/* <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-[#E4E7EF]"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-[#6B7280]">or</span>
-              </div>
-            </div> */}
-
-            {/* <button
-              type="button"
-              className="w-full py-3 bg-white border border-[#E4E7EF] text-[#0F1117] rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-[#F8F9FC] transition-all"
-            >
-              <Github className="w-5 h-5" />
-              Continue with GitHub
-            </button> */}
           </form>
 
           {/* Footer */}
